@@ -1,0 +1,24 @@
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LIBXMP.DLL
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\libxmp.dll C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LIBOGG-0.DLL
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\libogg-0.dll C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LIBOPUS-0.DLL
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\libopus-0.dll C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LIBOPUSFILE-0.DLL
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\libopusfile-0.dll C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LIBWAVPACK-1.DLL
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\libwavpack-1.dll C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LICENSE.XMP.TXT
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\LICENSE.xmp.txt C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LICENSE.OGG-VORBIS.TXT
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\LICENSE.ogg-vorbis.txt C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LICENSE.OPUS.TXT
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\LICENSE.opus.txt C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LICENSE.OPUSFILE.TXT
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\LICENSE.opusfile.txt C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LICENSE.WAVPACK.TXT
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\LICENSE.wavpack.txt C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LIBGME.DLL
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\libgme.dll C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
+^C:\USERS\ADMIN\DOWNLOADS\SDL2_MIXER-2.8.0\SDL2_MIXER-2.8.0\VISUALC\EXTERNAL\OPTIONAL\X86\LICENSE.GME.TXT
+copy C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\external\optional\x86\LICENSE.gme.txt C:\Users\ADMIN\Downloads\SDL2_mixer-2.8.0\SDL2_mixer-2.8.0\VisualC\\Win32\Release\
