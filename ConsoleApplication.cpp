@@ -1,106 +1,93 @@
-﻿#include <SDL.h>
-#include <iostream>
-#include <SDL_image.h>
-#include <SDL_mixer.h>
+﻿#include<SDL.h>
+#include<SDL_mixer.h>
+#include<SDL_image.h>
+#include<SDL_ttf.h>
+#include<iostream>
+#include "Music.h"
 
 using namespace std;
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
-const string WINDOW_TITLE = "Hello";
-void logSDLError(std::ostream& os,
-    const std::string& msg, bool fatal)
-{
-    os << msg << " Error: " << SDL_GetError() << std::endl;
-    if (fatal) {
-        SDL_Quit();
-        exit(1);
-    }
-}
-
-
-void initSDL(SDL_Window*& window, SDL_Renderer*& renderer)
-{
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-        logSDLError(std::cout, "SDL_Init", true);
-    window = SDL_CreateWindow(WINDOW_TITLE.c_str(), SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-
-    if (window == nullptr) logSDLError(std::cout, "CreateWindow", true);
-
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED |
-        SDL_RENDERER_PRESENTVSYNC);
-
-    if (renderer == nullptr) logSDLError(std::cout, "CreateRenderer", true);
+const int SCREEN_WIDTH = 1500;
+const int SCREEN_HEIGHT = 780;
+const int MAP_WIDTH = 2400;
+const int MAP_HEIGHT = 1800;
+const int TILE_SIZE = 800;
+SDL_Rect musicRect = { 750,500,30,30 };
+SDL_Rect newGameRect = { 700,300,150,50 };
+SDL_Rect exitRect = { 700,400,150,50 };
+void SDL_Init(SDL_Window*& window, SDL_Renderer*& renderer) {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) cout << "ERROR";
+    window = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-        std::cerr << "SDL_mixer could not initialize! SDL_mixer Error: " << Mix_GetError() << std::endl;
-        SDL_Quit();
-        exit(1);
-    }
+    IMG_Init(IMG_INIT_PNG);
+    initMix();
 }
-void waitUntilKeyPressed()
-{
-    SDL_Event e;
-    while (true) {
-        if (SDL_WaitEvent(&e) != 0 &&
-            (e.type == SDL_KEYDOWN || e.type == SDL_QUIT))
-            return;
-        SDL_Delay(100);
-    }
-}
-void quitSDL(SDL_Window* window, SDL_Renderer* renderer) {
+void QuitSDL(SDL_Window* window, SDL_Renderer* renderer) {
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
 }
 
+SDL_Texture* loadTexture(const string &file,SDL_Renderer* renderer) {
+    return IMG_LoadTexture(renderer, file.c_str());
+}
+bool onButtonClicked(SDL_Rect buttonRect, int mouseX, int mouseY) {
+    return (mouseX > buttonRect.x && mouseX < buttonRect.x + buttonRect.w &&
+        mouseY > buttonRect.y && mouseY < buttonRect.y + buttonRect.h);
+}
+
 int main(int argc, char* argv[]) {
     SDL_Window* window;
     SDL_Renderer* renderer;
-    initSDL(window, renderer);
-    if (IMG_Init(IMG_INIT_PNG) == 0) {
-        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
-        // Xử lý lỗi
-    }
-
-    Mix_Music* music = Mix_LoadMUS("C:\\Users\\ADMIN\\Downloads\\Music\\FF.mp3");
-    if (music == nullptr) {
-        std::cerr << "Failed to load music! SDL_mixer Error: " << Mix_GetError() << std::endl;
-        return 1;
-    }
-
-    // Phát nhạc
-    if (Mix_PlayMusic(music, -1) == -1) {  // Tham số -1 có nghĩa là phát lặp vô hạn
-        std::cerr << "Mix_PlayMusic: " << Mix_GetError() << std::endl;
-    }
-
-    SDL_Texture* newTexture = nullptr;
-    SDL_Surface* loadedSurface = IMG_Load("C:\\Users\\ADMIN\\Downloads\\spaceships\\ships\\Blue.png");
-    if (loadedSurface == nullptr) {
-        printf("Unable to load image %s! SDL_image Error: %s\n", "path", IMG_GetError());
-    }
-    else {
-        newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-        if (newTexture == nullptr) {
-            printf("Unable to create texture from %s! SDL Error: %s\n", "path", SDL_GetError());
-        }
-        SDL_FreeSurface(loadedSurface);
-    }
+    SDL_Init(window, renderer);
+    
+    SDL_Texture* texture = loadTexture("C:\\Users\\ADMIN\\Pictures\\Image\\SB.png", renderer);
     SDL_Rect rect;
-    rect.x = 100;
-    rect.y = 100;
-    rect.h = 200;
-    rect.w = 300;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = SCREEN_WIDTH;
+    rect.h = SCREEN_HEIGHT;
+    SDL_RenderCopy(renderer, texture, NULL, &rect);
+    
+    SDL_Texture* musicOn = loadTexture("image/ui/music-on.png", renderer);
+    SDL_Texture* musicOff = loadTexture("image/ui/music-off.png", renderer);
+    SDL_Texture* newGame = loadTexture("image/ui/newgame.png", renderer);
+    SDL_Texture* exitGame = loadTexture("image/ui/exit.png", renderer);
+    SDL_Texture* spaceShip = loadTexture("image/Componant/spaceShip/ships/green.png", renderer);
 
-    SDL_RenderCopy(renderer, newTexture, NULL, &rect);
+    SDL_Rect spaceShipRect = { 300,300,300,300 };
+    double angel = 45.0;
+    SDL_Point spacePoint = { 150,150 };
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
+    
+    renderMusicBackground(renderer, musicRect);
+
+    SDL_RenderCopyEx(renderer, spaceShip, NULL, &spaceShipRect, angel, &spacePoint, flip);
+    SDL_RenderCopy(renderer, musicOn, NULL, &musicRect);
+    SDL_RenderCopy(renderer, newGame, NULL, &newGameRect);
+    SDL_RenderCopy(renderer, exitGame, NULL, &exitRect);
     SDL_RenderPresent(renderer);
 
-    SDL_DestroyTexture(newTexture);
+    playMusic();
 
-    waitUntilKeyPressed();
-    quitSDL(window, renderer);
+    bool quit = false; SDL_Event e; bool openMusic = true;
+    while (!quit) {
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) quit = true;
+            if (e.type == SDL_MOUSEBUTTONDOWN) {
+                int mouseX, mouseY;
+                SDL_GetMouseState(&mouseX, &mouseY);
+                if (onButtonClicked(musicRect, mouseX, mouseY)) {
+                    openMusic = !openMusic;
+                    musicButtonAdapter(renderer, musicOn, musicOff, musicRect,openMusic);
+                }
+                if (onButtonClicked(exitRect, mouseX, mouseY)) quit = true;
+            }
+        }
+    }
+    QuitSDL(window, renderer);
+
     return 0;
 }

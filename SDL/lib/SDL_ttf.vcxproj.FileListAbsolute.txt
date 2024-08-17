@@ -1,0 +1,1 @@
+C:\Users\ADMIN\Downloads\SDL2_ttf-2.22.0\SDL2_ttf-2.22.0\VisualC\Win32\Release\SDL2_ttf.dll
