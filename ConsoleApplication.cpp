@@ -9,6 +9,7 @@
 #include "SmallEnemie.h"
 #include "Bullet.h"
 #include <Windows.h>
+#include "Item.h"
 
 
 using namespace std;
@@ -23,6 +24,7 @@ const int PADDING = 10;
 const int ENEMIES_FREQUENCY_APPEAR = 3000;
 const int ENEMIES_MEDIUM_FREQUENCY = 6000;
 const int ENEMIES_LARGE_FREQUENCY = 12000;
+const int MINIMUM_FEQUENCY_ENEMIE_APEAR = 500;
 const int BACKGROUND_SPEED = 10;
 const int HP = 10000;
 const int HP_BULLET_COST = 500;
@@ -31,6 +33,8 @@ const int SPACE_BULLET_SIZE = 30;
 const int SUMMARY_ANALOG_SIZE_W = 300;
 const int SUMMARY_ANALOG_SIZE_H = 200;
 const int HOME_CONTINUE_SIZE = 30;
+const int BOOST_FREQUENCY = 10000;
+const int ITEM_FREQUENCY = 30000;
 
 
 const int ENEMIE_LOST_HP_BY_BULLET = 2000;
@@ -41,7 +45,7 @@ SDL_Rect newGameRect = { 700,300,150,50 };
 SDL_Rect exitRect = { 700,400,150,50 };
 SDL_Rect pauseRect = { PADDING,PADDING,30,30 };
 SDL_Rect mapRect = { 0,0,SCREEN_WIDTH,SCREEN_HEIGHT };
-SDL_Rect spaceShipRect = { SCREEN_WIDTH / 2,SCREEN_HEIGHT - SPACE_SHIP_SIZE,SPACE_SHIP_SIZE,SPACE_SHIP_SIZE };
+
 SDL_Rect hpBarRect = { SCREEN_WIDTH - HP_SIZE - PADDING, PADDING ,HP_SIZE, HP_SIZE_HEIGHT };
 SDL_Rect scoreRect = { 2 * PADDING + pauseRect.w,PADDING,20,30 };
 const int scoreLength = 20;
@@ -60,6 +64,8 @@ std::string shot3EPath = "image/enemies/animation/Shots/shot3.png";
 std::string shot4EPath = "image/enemies/animation/Shots/shot4.png";
 std::string shot5EPath = "image/enemies/animation/Shots/shot5.png";
 std::string shot6EPath = "image/enemies/animation/Shots/shot6.png";
+
+std::string itemPath = "image/item/heal.png";
 
 std::string shipShotPath = "image/spaceShip/bullet.png";
 std::string shipShotExplosionPath = "image/spaceShip/explosion.png";
@@ -114,7 +120,9 @@ bool onButtonClicked(SDL_Rect buttonRect, int mouseX, int mouseY) {
 
 //  RENDER GAME COMPONANT
 
-void gameRender(SDL_Renderer* renderer,SDL_Texture* background,int currentYBackground,SDL_Texture* spaceShip,SDL_Texture* backButton) {
+void gameRender(SDL_Renderer* renderer,SDL_Texture* background,
+    int currentYBackground,SDL_Texture* spaceShip,
+    SDL_Texture* backButton,SDL_Rect spaceShipRect) {
     SDL_Rect back1 = { 0,currentYBackground,SCREEN_WIDTH,SCREEN_HEIGHT };
     SDL_Rect back2 = { 0,currentYBackground - SCREEN_HEIGHT,SCREEN_WIDTH,SCREEN_HEIGHT };
     
@@ -191,6 +199,8 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
     uniform_int_distribution<> dis12(1, 2);
     int enemieCreateCount=0;
 
+    SDL_Rect spaceShipRect = { SCREEN_WIDTH / 2,SCREEN_HEIGHT - SPACE_SHIP_SIZE,SPACE_SHIP_SIZE,SPACE_SHIP_SIZE };
+
     int currentYBackground = 0;
     SDL_Texture* background= loadTexture("image/background/background.png", renderer);
     SDL_Texture* spaceShip = loadTexture("image/Componant/spaceShip/ships/blue.png", renderer);
@@ -228,11 +238,12 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
 
     SDL_Texture* shipShot = loadTexture(shipShotPath,renderer);
     SDL_Texture* shipShotDestroy = loadTexture(shipShotExplosionPath,renderer);
+    SDL_Texture* itemTexture = loadTexture(itemPath, renderer);
     vector<Bullet> shipBullets;
     SDL_Rect shipBulletRect;
 
     SDL_RenderClear(renderer);
-    gameRender(renderer, background,currentYBackground, spaceShip, backButton);
+    gameRender(renderer, background,currentYBackground, spaceShip, backButton,spaceShipRect);
     hpUpdate(100, renderer,health,healthBar);
     SDL_RenderPresent(renderer);
 
@@ -240,8 +251,10 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
     bool isHomeClicked = false;
     bool isPauseClicked = false;
    
-    int hp = HP; int slowDown = 0;
+    int hp = HP; long long slowDown = 0;
     int score = 0;
+    int frequencyEnemieApear = ENEMIES_FREQUENCY_APPEAR;
+    Item* item=nullptr;
     EnemieSize enemieSize;
 
     while (!*quit && !isHomeClicked) {
@@ -270,6 +283,9 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
             if (hp < 0) break;
 
             slowDown++;
+            if (slowDown % ITEM_FREQUENCY == 0) {
+                item = new Item(renderer,itemTexture,SCREEN_WIDTH);
+            }
             if (slowDown % BACKGROUND_SPEED == 0) {
                 currentYBackground++;
             }
@@ -277,7 +293,7 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
             if (currentYBackground > SCREEN_HEIGHT) {
                 currentYBackground = 0;
             }
-            if (slowDown % ENEMIES_FREQUENCY_APPEAR == 0) {
+            if (slowDown % frequencyEnemieApear == 0) {
                 enemieCreateCount = dis35(gen);
                 enemieSize = EnemieSize::SMALL;
                 if (slowDown % ENEMIES_MEDIUM_FREQUENCY == 0) {
@@ -325,6 +341,10 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
                     }
                 }
             }
+            if (slowDown % BOOST_FREQUENCY == 0) {
+                if (frequencyEnemieApear > MINIMUM_FEQUENCY_ENEMIE_APEAR)
+                    frequencyEnemieApear -= 250;
+            }
             shipBulletRect = { spaceShipRect.x + spaceShipRect.w / 2 - SPACE_BULLET_SIZE / 2,
                 spaceShipRect.y - SPACE_SHIP_SIZE / 2 ,SPACE_BULLET_SIZE,2 * SPACE_BULLET_SIZE };
             for (SmallEnemie& enemie : enemies) if (!enemie.isInit) enemie.init(shots);
@@ -333,7 +353,7 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
                 shipBullets.push_back(Bullet(renderer, shipShot, shipBulletRect, 3, 0));
             }
             SDL_RenderClear(renderer);
-            gameRender(renderer, background, currentYBackground, spaceShip, pauseButton);
+            gameRender(renderer, background, currentYBackground, spaceShip, pauseButton,spaceShipRect);
             enemieShot(bullets);
             enemieShot(shipBullets);//spaceShipShot
 
@@ -356,6 +376,16 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
                 enemie.execute(spaceShipRect, enemies, hp, score);
 
             }
+            if (item != nullptr) {
+                item->execute();
+                if (SmallEnemie::onDamageEvent(item->itemRect, spaceShipRect)) {
+                    hp += 3000;
+                    if (hp > HP) hp = HP;
+                    item->deleteItem();
+                    item = nullptr;
+                }
+            }
+
             SDL_Color textColor = { 245,120,66 };
             scoreRender(renderer, score,scoreRect,textColor);
             hpUpdate(hp, renderer, health, healthBar);
@@ -513,4 +543,3 @@ int main(int argc, char* argv[]){
     QuitSDL(window, renderer);
     return 0;
 }
-

@@ -4,8 +4,6 @@
 #include<vector>
 
 const SDL_RendererFlip flip = SDL_FLIP_NONE;
-
-const float alpha = 90.0;
 const int ANIMATION_COUNT = 100;
 class Bullet
 {

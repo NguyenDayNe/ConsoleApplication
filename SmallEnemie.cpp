@@ -6,7 +6,7 @@
 #include<iostream>
 
 
-const std::string path = "image/enemies/animation/Explosions/";
+const std::string path = "image/enemies/explosion.png";
 const int ENEMIES_VERTICAL_SPEED_SLOWDOWN = 10;
 const int ENEMIES_HORIZONTAL_SPEED_SLOWDOWN = 300;
 
@@ -14,14 +14,14 @@ const int HORIZONTAL_MOVE_STACK = 20;
 const int HORIZONTAL_MOVE_SIZE = 10;
 
 const int FREQUENCY_SHOT = 2000;
-const int SHOT_SPEED = 7;//	HIGHER IT IS, SLOWER IT IS
+const int SHOT_SPEED = 5;//	HIGHER IT IS, SLOWER IT IS
 
 const int ENEMIE_SMALL_SIZE = 80;
 const int ENEMIE_MEDIUM_SIZE = 120;
 const int ENEMIE_LARGE_SIZE = 150;
 const int ENEMIE_SMALL_HP = 5000;
 const int ENEMIE_MEDIUM_HP = 8000;
-const int ENEMIE_LARGE_HP = 15000;
+const int ENEMIE_LARGE_HP = 20000;
 const int ENEMIE_SMALL_LOST_HP = 100;
 const int ENEMIE_MEDIUM_LOST_HP = 150;
 const int ENEMIE_LARGE_LOST_HP = 200;
@@ -36,7 +36,7 @@ const int ENEMIE_LARGE_SCORE = 500;
 
 const int MAX_EXPLOSION_ANIMATION_COUNT = 10;
 SDL_Rect headEnemie;
-
+const int alpha = 90.0;
 std::uniform_int_distribution<> distance(1, 2);
 
 
@@ -155,12 +155,11 @@ void SmallEnemie::execute(SDL_Rect spaceShipRect,std::vector<SmallEnemie>& enemi
 
 void SmallEnemie::enemieExplorsionAnimation(std::vector<SmallEnemie>& enemies) {
 	currentExplorsionAnimationId++;
-	std::string extends = "Ship" + std::to_string(enemieId) + "_Explosion" ;
-	std::string filePath = path+ extends + "/" +std::to_string(currentExplorsionAnimationId) + ".png";
+	
 	SDL_Texture* currentAnimationPicture = IMG_LoadTexture(
-		renderer, filePath.c_str());
+		renderer, path.c_str());
 	SDL_RenderCopy(renderer, currentAnimationPicture, NULL, &enemieRect);
-	SDL_RenderPresent(renderer);
+	//SDL_RenderPresent(renderer);
 	SDL_DestroyTexture(currentAnimationPicture);
 	if (currentExplorsionAnimationId == MAX_EXPLOSION_ANIMATION_COUNT) isExlorsion = false;
 	if (currentExplorsionAnimationId == MAX_EXPLOSION_ANIMATION_COUNT) deleteEnemie(*this, enemies);
