@@ -27,7 +27,11 @@ const int BACKGROUND_SPEED = 10;
 const int HP = 10000;
 const int HP_BULLET_COST = 500;
 const int SHIP_SHOT_FREQUENTCY = 150;
-const int SPACE_BULLET_SIZE = 60;
+const int SPACE_BULLET_SIZE = 30;
+const int SUMMARY_ANALOG_SIZE_W = 300;
+const int SUMMARY_ANALOG_SIZE_H = 200;
+const int HOME_CONTINUE_SIZE = 30;
+
 
 const int ENEMIE_LOST_HP_BY_BULLET = 2000;
 
@@ -35,11 +39,12 @@ const int ENEMIE_LOST_HP_BY_BULLET = 2000;
 SDL_Rect musicRect = { 750,500,30,30 };
 SDL_Rect newGameRect = { 700,300,150,50 };
 SDL_Rect exitRect = { 700,400,150,50 };
-SDL_Rect backRect = { PADDING,PADDING,30,30 };
+SDL_Rect pauseRect = { PADDING,PADDING,30,30 };
 SDL_Rect mapRect = { 0,0,SCREEN_WIDTH,SCREEN_HEIGHT };
 SDL_Rect spaceShipRect = { SCREEN_WIDTH / 2,SCREEN_HEIGHT - SPACE_SHIP_SIZE,SPACE_SHIP_SIZE,SPACE_SHIP_SIZE };
 SDL_Rect hpBarRect = { SCREEN_WIDTH - HP_SIZE - PADDING, PADDING ,HP_SIZE, HP_SIZE_HEIGHT };
-
+SDL_Rect scoreRect = { 2 * PADDING + pauseRect.w,PADDING,20,30 };
+const int scoreLength = 20;
 bool openMusic = true;
 
 std::string shot1Path = "image/enemies/animation/Shots/1.png";
@@ -56,6 +61,14 @@ std::string shot4EPath = "image/enemies/animation/Shots/shot4.png";
 std::string shot5EPath = "image/enemies/animation/Shots/shot5.png";
 std::string shot6EPath = "image/enemies/animation/Shots/shot6.png";
 
+std::string shipShotPath = "image/spaceShip/bullet.png";
+std::string shipShotExplosionPath = "image/spaceShip/explosion.png";
+
+TTF_Font* font;
+std::string fontPath = "font/suse.ttf";
+SDL_Surface* fontSurface;
+SDL_Texture* fontTexture;
+
 //  INIT SDL
 
 void SDL_Init(SDL_Window*& window, SDL_Renderer*& renderer) {
@@ -67,6 +80,8 @@ void SDL_Init(SDL_Window*& window, SDL_Renderer*& renderer) {
     IMG_Init(IMG_INIT_JPG|IMG_INIT_PNG);
     initMix();
     playMusicBackground();
+    TTF_Init();
+    font = TTF_OpenFont(fontPath.c_str(), 24);
 }
 
 //  QUIT SDL
@@ -106,7 +121,7 @@ void gameRender(SDL_Renderer* renderer,SDL_Texture* background,int currentYBackg
     SDL_RenderCopy(renderer, background, NULL, &back1);
     SDL_RenderCopy(renderer, background, NULL, &back2);
     SDL_RenderCopy(renderer, spaceShip, NULL, &spaceShipRect);
-    SDL_RenderCopy(renderer, backButton, NULL, &backRect);
+    SDL_RenderCopy(renderer, backButton, NULL, &pauseRect);
     
 }
 
@@ -126,6 +141,46 @@ void enemieShot(vector<Bullet>& bullets) {
         bullet.bulletRender(SCREEN_HEIGHT, bullets);
     }
 }
+
+void scoreRender(SDL_Renderer* renderer,int score,
+    SDL_Rect& scoreRect,SDL_Color textColor) {
+    SDL_DestroyTexture(fontTexture);
+    SDL_FreeSurface(fontSurface);
+    int n = score, dem = 0;
+    while (n > 0) {
+        n = n / 10;
+        dem++;
+    }
+    if (score == 0) dem = 1;
+    dem += 6; //length of "SCORE "
+    scoreRect.w = dem * scoreLength;
+    
+    fontSurface = TTF_RenderText_Solid(font, ("SCORE "+to_string(score)).c_str(), textColor);
+    fontTexture = SDL_CreateTextureFromSurface(renderer, fontSurface);
+    SDL_RenderCopy(renderer, fontTexture, NULL, &scoreRect);
+}
+
+void gameOverTextRender(SDL_Renderer* renderer, SDL_Rect rect, SDL_Color textColor) {
+    SDL_DestroyTexture(fontTexture);
+    SDL_FreeSurface(fontSurface);
+    rect.w = scoreLength * 9;
+    rect.x = rect.x - rect.w / 2;
+    fontSurface = TTF_RenderText_Solid(font, "GAME OVER", textColor);
+    fontTexture = SDL_CreateTextureFromSurface(renderer, fontSurface);
+    SDL_RenderCopy(renderer, fontTexture, NULL, &rect);
+}
+
+void changeScoreRectSummary(SDL_Rect& rect,SDL_Rect summary,int score) {
+    int n = score, dem = 0;
+    while (n > 0) {
+        n = n / 10;
+        dem++;
+    }
+    if (score == 0) dem = 1;
+    dem += 6; //length of "SCORE "
+    rect.w = dem * scoreLength;
+   
+} 
 //  GAMEPLAY
 
 void gamePlay(SDL_Renderer* renderer,bool* quit) {
@@ -140,6 +195,9 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
     SDL_Texture* background= loadTexture("image/background/background.png", renderer);
     SDL_Texture* spaceShip = loadTexture("image/Componant/spaceShip/ships/blue.png", renderer);
     SDL_Texture* backButton = loadTexture("image/ui/back.png",renderer);
+    SDL_Texture* pauseButton = loadTexture("image/ui/pause.png", renderer);
+    SDL_Texture* homeButton = loadTexture("image/ui/home.png", renderer);
+    SDL_Texture* board = loadTexture("image/ui/board.png", renderer);
 
     SDL_Texture* enemieRandom1 = loadTexture("image/enemies/ship/Ship1/Ship1.png", renderer);
     SDL_Texture* enemieRandom2 = loadTexture("image/enemies/ship/Ship2/Ship2.png", renderer);
@@ -151,6 +209,13 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
     SDL_Texture* healthBar = loadTexture("image/Componant/healthBar.png", renderer);
     SDL_Texture* health = loadTexture("image/Componant/health.png", renderer);
 
+    SDL_Rect summary = { SCREEN_WIDTH / 2 - SUMMARY_ANALOG_SIZE_W / 2,
+                SCREEN_HEIGHT / 2 - SUMMARY_ANALOG_SIZE_H / 2,
+                SUMMARY_ANALOG_SIZE_W,SUMMARY_ANALOG_SIZE_H };
+    SDL_Rect summaryScoreRect = { summary.x + summary.w / 2,summary.y + summary.h / 2 - 30,
+        60,60 };
+    SDL_Rect homeButtonRect = { summary.x+summary.w/2-30,summary.y+summary.h-60,60,60 };
+
     vector<SmallEnemie> enemies;
     vector<Bullet> bullets;
     SDL_Texture* shots[12];
@@ -161,8 +226,8 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
     shots[4] = loadTexture(shot5Path, renderer); shots[10] = loadTexture(shot5EPath, renderer);
     shots[5] = loadTexture(shot6Path, renderer); shots[11] = loadTexture(shot6EPath, renderer);
 
-    SDL_Texture* shipShot = shots[0];
-    SDL_Texture* shipShotDestroy = shots[6];
+    SDL_Texture* shipShot = loadTexture(shipShotPath,renderer);
+    SDL_Texture* shipShotDestroy = loadTexture(shipShotExplosionPath,renderer);
     vector<Bullet> shipBullets;
     SDL_Rect shipBulletRect;
 
@@ -172,124 +237,182 @@ void gamePlay(SDL_Renderer* renderer,bool* quit) {
     SDL_RenderPresent(renderer);
 
     SDL_Event e;
-    bool isBackClicked = false;
+    bool isHomeClicked = false;
+    bool isPauseClicked = false;
+   
     int hp = HP; int slowDown = 0;
+    int score = 0;
     EnemieSize enemieSize;
 
-    while (!*quit && !isBackClicked) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) *quit = true;
-            if (e.type == SDL_MOUSEBUTTONDOWN) {
-                int mouseX, mouseY;
-                SDL_GetMouseState(&mouseX, &mouseY);
-                if (onButtonClicked(backRect, mouseX, mouseY)) isBackClicked = true;
-            }
-        }
-
-        const Uint8* kState = SDL_GetKeyboardState(NULL);
-        if (kState[SDL_SCANCODE_W]) spaceShipRect.y -= SPACE_SHIP_SPEED;
-        if (kState[SDL_SCANCODE_S]) spaceShipRect.y += SPACE_SHIP_SPEED;
-        if (kState[SDL_SCANCODE_A]) spaceShipRect.x -= SPACE_SHIP_SPEED;
-        if (kState[SDL_SCANCODE_D]) spaceShipRect.x += SPACE_SHIP_SPEED;
-        if (kState[SDL_SCANCODE_0]) hp--;
-
-        if (spaceShipRect.x < 0) spaceShipRect.x = 0;
-        if (spaceShipRect.y < 0) spaceShipRect.y = 0;
-        if (spaceShipRect.x > SCREEN_WIDTH - spaceShipRect.w) spaceShipRect.x = SCREEN_WIDTH - spaceShipRect.w;
-        if (spaceShipRect.y > SCREEN_HEIGHT - spaceShipRect.h) spaceShipRect.y = SCREEN_HEIGHT - spaceShipRect.h;
-
-        if (hp < 0) isBackClicked=true;
-
-        slowDown++;
-        if (slowDown % BACKGROUND_SPEED == 0) {
-            currentYBackground++;
-        }
+    while (!*quit && !isHomeClicked) {
         
-        if (currentYBackground > SCREEN_HEIGHT) {
-            currentYBackground = 0;
-        }
-        if (slowDown % ENEMIES_FREQUENCY_APPEAR == 0) {
-            enemieCreateCount = dis35(gen);
-            enemieSize = EnemieSize::SMALL;
-            if (slowDown % ENEMIES_MEDIUM_FREQUENCY == 0) {
-                enemieSize = EnemieSize::MEDIUM;
-                enemieCreateCount = dis13(gen);
-            }
-            if (slowDown % ENEMIES_LARGE_FREQUENCY == 0) {
-                enemieSize = EnemieSize::LARGE;
-                enemieCreateCount = dis12(gen);
-            }
-
-            for (int i = 1; i <= enemieCreateCount; i++) {
-                switch (dis26(gen)) {
-                case 1:
-                    enemies.push_back(
-                        SmallEnemie(1,enemieSize,SCREEN_WIDTH,SCREEN_HEIGHT,
-                            enemieRandom1, renderer, spaceShipRect,bullets));
-                    break;
-                case 2:
-                    enemies.push_back(
-                        SmallEnemie(2,enemieSize, SCREEN_WIDTH,SCREEN_HEIGHT, 
-                            enemieRandom2, renderer, spaceShipRect,bullets));
-                    break;
-                case 3:
-                    enemies.push_back(
-                        SmallEnemie(3,enemieSize,SCREEN_WIDTH,SCREEN_HEIGHT, 
-                            enemieRandom3, renderer, spaceShipRect,bullets));
-                    break;
-                case 4:
-                    enemies.push_back(
-                        SmallEnemie(4,enemieSize, SCREEN_WIDTH, SCREEN_HEIGHT,
-                            enemieRandom4, renderer, spaceShipRect, bullets));
-                    break;
-                case 5:
-                    enemies.push_back(
-                        SmallEnemie(5,enemieSize, SCREEN_WIDTH,SCREEN_HEIGHT,
-                            enemieRandom5, renderer, spaceShipRect, bullets));
-                    break;
-                case 6:
-                    enemies.push_back(
-                        SmallEnemie(6,enemieSize,SCREEN_WIDTH,SCREEN_HEIGHT,
-                            enemieRandom6, renderer, spaceShipRect, bullets));
-                    break;
-
+        if (!isPauseClicked) {
+            while (SDL_PollEvent(&e)) {
+                if (e.type == SDL_QUIT) *quit = true;
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                    int mouseX, mouseY;
+                    SDL_GetMouseState(&mouseX, &mouseY);
+                    if (onButtonClicked(pauseRect, mouseX, mouseY)) isPauseClicked = true;
                 }
             }
-        }
-        shipBulletRect = { spaceShipRect.x + spaceShipRect.w / 2 - SPACE_BULLET_SIZE / 2,
-            spaceShipRect.y-SPACE_SHIP_SIZE/2 ,SPACE_BULLET_SIZE,SPACE_BULLET_SIZE };
-        for (SmallEnemie& enemie : enemies) if (!enemie.isInit) enemie.init(shots);
-        if (slowDown % SHIP_SHOT_FREQUENTCY == 0) {
-            shootPlay();
-            shipBullets.push_back(Bullet(renderer, shipShot, shipBulletRect, 3, 0));
-        }
-        SDL_RenderClear(renderer);
-        gameRender(renderer, background, currentYBackground,spaceShip, backButton);
-        enemieShot(bullets);
-        enemieShot(shipBullets);
+            const Uint8* kState = SDL_GetKeyboardState(NULL);
+            if (kState[SDL_SCANCODE_W]) spaceShipRect.y -= SPACE_SHIP_SPEED;
+            if (kState[SDL_SCANCODE_S]) spaceShipRect.y += SPACE_SHIP_SPEED;
+            if (kState[SDL_SCANCODE_A]) spaceShipRect.x -= SPACE_SHIP_SPEED;
+            if (kState[SDL_SCANCODE_D]) spaceShipRect.x += SPACE_SHIP_SPEED;
+            
 
-        for (Bullet& bullet : bullets) if (SmallEnemie::onDamageEvent(bullet.bulletRect, spaceShipRect)) {
-            bullet.image = shots[bullet.enemieId + 5];
-            if (!bullet.isDestroy) hp -= HP_BULLET_COST;
-            bullet.isDestroy = true;
-        }
-        for (Bullet& bullet : shipBullets) {
-            for (SmallEnemie& enemie : enemies) if (SmallEnemie::onDamageEvent(
-                enemie.enemieRect, bullet.bulletRect
-            )) {
-               
-                bullet.image = shipShotDestroy;
-                if(!bullet.isDestroy) enemie.enemieHp -= ENEMIE_LOST_HP_BY_BULLET;
+            if (spaceShipRect.x < 0) spaceShipRect.x = 0;
+            if (spaceShipRect.y < 0) spaceShipRect.y = 0;
+            if (spaceShipRect.x > SCREEN_WIDTH - spaceShipRect.w) spaceShipRect.x = SCREEN_WIDTH - spaceShipRect.w;
+            if (spaceShipRect.y > SCREEN_HEIGHT - spaceShipRect.h) spaceShipRect.y = SCREEN_HEIGHT - spaceShipRect.h;
+
+            if (hp < 0) break;
+
+            slowDown++;
+            if (slowDown % BACKGROUND_SPEED == 0) {
+                currentYBackground++;
+            }
+
+            if (currentYBackground > SCREEN_HEIGHT) {
+                currentYBackground = 0;
+            }
+            if (slowDown % ENEMIES_FREQUENCY_APPEAR == 0) {
+                enemieCreateCount = dis35(gen);
+                enemieSize = EnemieSize::SMALL;
+                if (slowDown % ENEMIES_MEDIUM_FREQUENCY == 0) {
+                    enemieSize = EnemieSize::MEDIUM;
+                    enemieCreateCount = dis13(gen);
+                }
+                if (slowDown % ENEMIES_LARGE_FREQUENCY == 0) {
+                    enemieSize = EnemieSize::LARGE;
+                    enemieCreateCount = dis12(gen);
+                }
+
+                for (int i = 1; i <= enemieCreateCount; i++) {
+                    switch (dis26(gen)) {
+                    case 1:
+                        enemies.push_back(
+                            SmallEnemie(1, enemieSize, SCREEN_WIDTH, SCREEN_HEIGHT,
+                                enemieRandom1, renderer, spaceShipRect, bullets));
+                        break;
+                    case 2:
+                        enemies.push_back(
+                            SmallEnemie(2, enemieSize, SCREEN_WIDTH, SCREEN_HEIGHT,
+                                enemieRandom2, renderer, spaceShipRect, bullets));
+                        break;
+                    case 3:
+                        enemies.push_back(
+                            SmallEnemie(3, enemieSize, SCREEN_WIDTH, SCREEN_HEIGHT,
+                                enemieRandom3, renderer, spaceShipRect, bullets));
+                        break;
+                    case 4:
+                        enemies.push_back(
+                            SmallEnemie(4, enemieSize, SCREEN_WIDTH, SCREEN_HEIGHT,
+                                enemieRandom4, renderer, spaceShipRect, bullets));
+                        break;
+                    case 5:
+                        enemies.push_back(
+                            SmallEnemie(5, enemieSize, SCREEN_WIDTH, SCREEN_HEIGHT,
+                                enemieRandom5, renderer, spaceShipRect, bullets));
+                        break;
+                    case 6:
+                        enemies.push_back(
+                            SmallEnemie(6, enemieSize, SCREEN_WIDTH, SCREEN_HEIGHT,
+                                enemieRandom6, renderer, spaceShipRect, bullets));
+                        break;
+
+                    }
+                }
+            }
+            shipBulletRect = { spaceShipRect.x + spaceShipRect.w / 2 - SPACE_BULLET_SIZE / 2,
+                spaceShipRect.y - SPACE_SHIP_SIZE / 2 ,SPACE_BULLET_SIZE,2 * SPACE_BULLET_SIZE };
+            for (SmallEnemie& enemie : enemies) if (!enemie.isInit) enemie.init(shots);
+            if (slowDown % SHIP_SHOT_FREQUENTCY == 0) {
+                shootPlay();
+                shipBullets.push_back(Bullet(renderer, shipShot, shipBulletRect, 3, 0));
+            }
+            SDL_RenderClear(renderer);
+            gameRender(renderer, background, currentYBackground, spaceShip, pauseButton);
+            enemieShot(bullets);
+            enemieShot(shipBullets);//spaceShipShot
+
+            for (Bullet& bullet : bullets) if (SmallEnemie::onDamageEvent(bullet.bulletRect, spaceShipRect)) {
+                bullet.image = shots[bullet.enemieId + 5];
+                if (!bullet.isDestroy) hp -= HP_BULLET_COST;
                 bullet.isDestroy = true;
             }
+            for (Bullet& bullet : shipBullets) {
+                for (SmallEnemie& enemie : enemies) if (SmallEnemie::onDamageEvent(
+                    enemie.enemieRect, bullet.bulletRect
+                )) {
+
+                    bullet.image = shipShotDestroy;
+                    if (!bullet.isDestroy) enemie.enemieHp -= ENEMIE_LOST_HP_BY_BULLET;
+                    bullet.isDestroy = true;
+                }
+            }
+            for (SmallEnemie& enemie : enemies) {
+                enemie.execute(spaceShipRect, enemies, hp, score);
+
+            }
+            SDL_Color textColor = { 245,120,66 };
+            scoreRender(renderer, score,scoreRect,textColor);
+            hpUpdate(hp, renderer, health, healthBar);
+            SDL_RenderPresent(renderer);
         }
-        for (SmallEnemie& enemie : enemies) enemie.execute(spaceShipRect, enemies,hp);
-        hpUpdate(hp, renderer,health, healthBar);
-        SDL_RenderPresent(renderer);
+        else {
+            changeScoreRectSummary(summaryScoreRect,summary,score);
+            summaryScoreRect.x = summary.x + summary.w / 2 - summaryScoreRect.w / 2;
+            while (SDL_PollEvent(&e)) {
+                if (e.type == SDL_QUIT) *quit = true;
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                    int mouseX, mouseY;
+                    SDL_GetMouseState(&mouseX, &mouseY);
+                    if (onButtonClicked(pauseRect, mouseX, mouseY)) isPauseClicked = false;
+                    if (onButtonClicked(homeButtonRect, mouseX, mouseY)) isHomeClicked = true;
+                }
+            }
+
+            SDL_Color textColor = { 245, 150, 66 };
+            SDL_RenderClear(renderer);
+            SDL_RenderCopy(renderer, board, NULL, &summary);
+            SDL_RenderCopy(renderer, homeButton, NULL, &homeButtonRect);
+            scoreRender(renderer, score,summaryScoreRect,textColor);
+            SDL_RenderCopy(renderer, pauseButton, NULL, &pauseRect);
+            SDL_RenderPresent(renderer);
+        }
         
         SDL_Delay(1);
     }
 
+    changeScoreRectSummary(summaryScoreRect, summary, score);
+    summaryScoreRect.x = summary.x + summary.w / 2 - summaryScoreRect.w / 2;
+    
+
+    SDL_Color textColor = { 245, 150, 66 };
+    SDL_Rect gameOverRect = { summary.x + summary.w / 2,summary.y,60,60 };
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, board, NULL, &summary);
+    SDL_RenderCopy(renderer, homeButton, NULL, &homeButtonRect);
+    scoreRender(renderer, score, summaryScoreRect, textColor);
+    gameOverTextRender(renderer, gameOverRect, textColor);
+    SDL_RenderPresent(renderer);
+
+    bool isEndGame = false;
+    if (!*quit && !isHomeClicked) {
+        while (true) {
+            while (SDL_PollEvent(&e)) {
+                if (e.type == SDL_QUIT) *quit = true;
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                    int mouseX, mouseY;
+                    SDL_GetMouseState(&mouseX, &mouseY);
+                    if (onButtonClicked(homeButtonRect, mouseX, mouseY)) isEndGame=true;
+                }
+            }
+            if (isEndGame) break;
+        }
+    }
 }
 
 
@@ -374,8 +497,8 @@ void mainMenu(SDL_Renderer* renderer,bool* quit) {
 
 //  MAIN METHOD
 
-//int main(int argc, char* argv[])
-int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int main(int argc, char* argv[]){
+//int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Init(window, renderer);

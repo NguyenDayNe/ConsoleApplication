@@ -30,6 +30,10 @@ const int SHOT_SMALL_SIZE = 70;
 const int SHOT_MEDIUM_SIZE = 80;
 const int SHOT_LARGE_SIZE = 100;
 
+const int ENEMIE_SMALL_SCORE = 100;
+const int ENEMIE_MEDIUM_SCORE = 200;
+const int ENEMIE_LARGE_SCORE = 500;
+
 const int MAX_EXPLOSION_ANIMATION_COUNT = 10;
 SDL_Rect headEnemie;
 
@@ -49,7 +53,6 @@ void SmallEnemie::init(SDL_Texture* shotTextures[]) {
 		alive = true;
 		isExlorsion = false;
 		shotTexture = shotTextures[enemieId-1];
-		
 		std::uniform_int_distribution<> dis(0, x);
 		random = dis(gen);
 		id = random;
@@ -60,18 +63,23 @@ void SmallEnemie::init(SDL_Texture* shotTextures[]) {
 				enemieIntSize = ENEMIE_SMALL_SIZE;
 				enemieLostHp = ENEMIE_SMALL_LOST_HP;
 				shotSize = SHOT_SMALL_SIZE;
+				enemieScore = ENEMIE_SMALL_SCORE;
 				break;
 			case EnemieSize::MEDIUM:
 				enemieHp = ENEMIE_MEDIUM_HP;
 				enemieIntSize = ENEMIE_MEDIUM_SIZE;
 				enemieLostHp = ENEMIE_MEDIUM_LOST_HP;
 				shotSize = SHOT_MEDIUM_SIZE;
+				enemieScore = ENEMIE_MEDIUM_SCORE;
+
 				break;
 			case EnemieSize::LARGE:
 				enemieHp = ENEMIE_LARGE_HP;
 				enemieIntSize = ENEMIE_LARGE_SIZE;
 				enemieLostHp = ENEMIE_LARGE_LOST_HP;
 				shotSize = SHOT_LARGE_SIZE;
+				enemieScore = ENEMIE_LARGE_SCORE;
+
 				break;
 		}
 		enemieRect = { random,-enemieIntSize,enemieIntSize,enemieIntSize };
@@ -80,7 +88,7 @@ void SmallEnemie::init(SDL_Texture* shotTextures[]) {
 	}
 }
 void SmallEnemie::execute(SDL_Rect spaceShipRect,std::vector<SmallEnemie>& enemies,
-	int &shipHp) {
+	int &shipHp,int &score) {
 	if (alive) {
 		currentStackFall++;
 
@@ -137,7 +145,10 @@ void SmallEnemie::execute(SDL_Rect spaceShipRect,std::vector<SmallEnemie>& enemi
 		}
 		
 		if (enemieHp <= 0) alive = false;
-		if (!alive) isExlorsion = true;
+		if (!alive) {
+			isExlorsion = true;
+			score += enemieScore;
+		}
 	}
 	if (isExlorsion) enemieExplorsionAnimation(enemies);
 }

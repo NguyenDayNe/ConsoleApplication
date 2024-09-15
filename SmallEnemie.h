@@ -20,6 +20,7 @@ public:
 	int enemieId,enemieHp;
 	int enemieLostHp;
 	int shotSize;
+	int enemieScore;
 	bool isInit = false;
 	EnemieSize enemieSize;
 	SDL_Point enemieCenterPoint;
@@ -29,7 +30,7 @@ public:
 		SDL_Texture* enemieShape, SDL_Renderer* renderer, SDL_Rect shipRect,
 		std::vector<Bullet>& bullets);
 	void execute(SDL_Rect spaceShipRect,std::vector<SmallEnemie>& enemies,
-		int& shipHp);
+		int& shipHp,int& score);
 	void init(SDL_Texture* shotTextures[]);
 	bool operator==(const SmallEnemie& other) const {
 		return id == other.id; 
